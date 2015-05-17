@@ -18,10 +18,12 @@ if (Meteor.isClient) {
       Session.set("selected_opening_id", undefined);
       Session.set("selected_opening_name", undefined);
       Session.set("current_FEN", 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');//initial starting position
+      Session.set("current_PGN", ''); //initial value
     },
     'click #practiceBtn' : function () {
       Session.set("prepORpractice", "practice");
       Session.set("current_FEN", 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'); //initial starting position
+      Session.set("current_PGN", ''); //initial value
     }
   });
 
@@ -123,13 +125,13 @@ if (Meteor.isClient) {
   */
   Template.auto_render.helpers({
     current_FEN_updated1 : function() {
-      console.log(Session.get("current_FEN"));
+      //console.log(Session.get("current_FEN"));
       prep_board.position(Session.get("current_FEN"));
       $('#fen').html(Session.get("current_FEN"));
       $('#pgn').html(Session.get("current_PGN"));
    },
     current_FEN_updated2 : function() {
-      console.log(Session.get("current_FEN"));
+      //console.log(Session.get("current_FEN"));
       practice_board.position(Session.get("current_FEN"));
       //$('#fen').html(Session.get("current_FEN"));
       //$('#pgn').html(Session.get("current_PGN"));
@@ -306,9 +308,7 @@ Template.opening_home.helpers({
     var onDragStart = function(source, piece, position, orientation) {
     
       Session.set("parent_fen", Session.get("current_FEN"));
-      //Session.set("parent_pgn", Session.get("current_PGN"));
-      //Session.set("parent_move", Moves.find({opening: Session.get("selected_opening_name"), FEN: Session.get("current_FEN")}).move);
-      //console.log(Session.get("parent_move"));
+      Session.set("parent_pgn", Session.get("current_PGN"));
 
       if (game.game_over() === true ||
           (game.turn() === 'w' && piece.search(/^b/) !== -1) ||
@@ -391,7 +391,7 @@ Template.opening_home.helpers({
       if (dbMove != "0. ... ") { // not the first move
 
         if(Moves.find({opening: Session.get("selected_opening_name"), FEN: game.fen()}).count() == 0) {
-          Meteor.call('db_insertMove', dbMove, parentNotation, game.fen(), game.pgn(), Session.get("parent_fen"), Session.get("selected_opening_name"),
+          Meteor.call('db_insertMove', dbMove, parentNotation, game.fen(), game.pgn(), Session.get("parent_fen"), Session.get("parent_pgn"), Session.get("selected_opening_name"),
               //client side call back function for error handling
               function(error, response) { 
                 if(error == undefined) {
@@ -430,10 +430,12 @@ Template.opening_home.helpers({
     'click #backBtn' : function () {
       var m = Moves.findOne({opening: Session.get("selected_opening_name"), FEN: Session.get("current_FEN")});
       Session.set("current_FEN", m.parentFEN);
+      Session.set("current_PGN", m.parentPGN);
     },
     'click #forwardBtn' : function () {
       var m = Moves.findOne({opening: Session.get("selected_opening_name"), parentFEN: Session.get("current_FEN")});
       Session.set("current_FEN", m.FEN);
+      Session.set("current_PGN", m.PGN);
     }
   });
 
@@ -519,7 +521,7 @@ if (Meteor.isServer) {
       );
     },
 
-    db_insertMove: function(move_arg, parent_arg, fen_arg, pgn_arg, parentFen_arg, opening_arg) {
+    db_insertMove: function(move_arg, parent_arg, fen_arg, pgn_arg, parentFen_arg, parentPGN_arg, opening_arg) {
       Moves.insert(
          { 
           move: move_arg, 
@@ -527,6 +529,7 @@ if (Meteor.isServer) {
           FEN: fen_arg,
           PGN: pgn_arg,
           parentFEN: parentFen_arg,
+          parentPGN: parentPGN_arg,
           opening: opening_arg,
          } ,
           //server side call back function for error handling
