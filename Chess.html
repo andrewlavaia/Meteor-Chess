@@ -1,0 +1,222 @@
+<head>
+  <title>Chess</title>
+</head>
+
+<body>
+<div id="wrapper">
+	<div id="header">
+		<div class="container"> 
+		  <h1> Chess Opening Trainer</h1>
+		</div>
+	</div>
+
+	<div class="nav-bar"> 
+		<div class="container">
+			<ul class="nav">
+				{{> menu_screen}}
+			</ul>
+		</div>
+	</div>
+
+	<div class="content">
+		<div class="container">
+			<div class="main">
+
+				{{> main_content}}
+
+			</div>
+
+			<div class="aside">
+				  {{> print_moves}}
+			</div>
+		</div>
+	</div>
+
+	<div class="footer">
+		<div class="container">
+		</div>
+	</div>
+</div>
+</body>
+
+<template name="menu_screen">
+
+	<li id="prepareBtn"><input type="button"  value="Prepare" /></li>
+	<li id="practiceBtn"><input type="button"  value="Practice" /></li>
+
+</template>
+
+<template name="main_content">
+    <!-- Prep button clicked -->
+    {{#if isPrep}}
+
+      {{> prepare_home}}
+      
+    {{/if}}
+
+    <!-- Practice button clicked -->
+    {{#if isPractice}}
+
+      {{> chess_board_practice}}
+
+    {{/if}}
+</template>
+
+
+
+<template name="chess_board_practice">
+	<p>Choose an opening<select name="opening_dropdown">
+	    {{#each getUserOpenings}}
+	     <option id="{{_id}}">{{name}}</option>
+	    {{/each}}
+	</select></p>
+
+	<h4>You are currently practicing: {{showOpeningName}}</h4>
+	<div id="practice_board" style="width: 400px"></div>
+	<input type="button" id="whiteOrientationBtn" value="White orientation" />
+	<input type="button" id="blackOrientationBtn" value="Black orientation" />
+	<input type="button" id="backBtn" value="Back" />
+	<input type="button" id="forwardBtn" value="Forward" />
+	<!-- Templates are re-rendered every time a nested template is updated -->
+	{{> auto_render}}
+</template>
+
+
+<template name="prepare_home">
+
+	{{#if openingSelected}}
+	  {{> opening_home}}
+	{{else}}
+
+	<div>
+	  <h2> My Openings </h2>
+	  {{#if getUserOpenings}}
+	    <ul>
+	    {{#each getUserOpenings}}
+	      <li> 
+	        <a href="#">{{name}} - {{side}} ({{status}})</a> 
+	        <input type="button" value="Delete" class="delete" />
+	      </li>
+	      
+	      
+	    {{/each}}
+	    </ul>
+	  {{else}}
+	   <h3>You have not created any openings yet.</h3>
+	  {{/if}}
+
+	  <div id="create_opening_form">
+	    <a href="#" id="display_form_newopening">Create New Opening </a>
+	    <form id="form_newopening" style="display: none;">
+	      <p>
+	      Name: <input type="text" name="form_newopening_name"  /> 
+	      </p>
+	      <p>
+	      <input type="radio" name="form_newopening_side" value="white" checked /> White
+	      <input type="radio" name="form_newopening_side" value="black"  />  Black
+	      </p>
+
+	      <!--
+	      <p>  
+	      <input type="radio" name="form_newopening_status" value="private" checked/> Private
+	      <input type="radio" name="form_newopening_status" value="protected" />  Protected
+	      <input type="radio" name="form_newopening_status" value="public" />  Public
+	      </p>
+	      -->
+	      <input type="button" name="form_newopening_Btn" value="Create New Opening" />
+	    </form>
+	  </div>
+
+	</div>
+
+	{{/if}}
+</template>
+
+
+<template name="opening_home">
+
+<!--
+	<p>Choose an opening
+	<select name="opening_dropdown">
+	    {{#each getUserOpenings}}
+	     <option id="{{_id}}">{{name}}</option>
+	    {{/each}}
+	</select>
+	</p>
+-->
+	<h4>You are currently viewing: {{showOpeningName}}</h4>
+
+	{{> chess_board_prepare }}
+
+</template>
+
+
+<template name="chess_board_prepare">
+  <p>Would you like to record new moves for this opening?
+  <input type="radio" name="record" id="r1" value="Yes" /> Yes
+  <input type="radio" name="record" id="r2" value="No" checked />  No
+  </p>
+
+  	<div id="board" style="display: none;">
+		<div id="prep_board" style="width: 400px"></div>
+		<p>Status: <span id="status"></span></p>
+		<p>FEN: <span id="fen"></span></p>
+		<p>PGN: <span id="pgn"></span></p>
+
+		<input type="button" id="whiteOrientationBtn" value="White orientation" />
+		<input type="button" id="blackOrientationBtn" value="Black orientation" />
+
+		<input type="button" id="backBtn" value="Back" />
+		<input type="button" id="forwardBtn" value="Forward" />
+		
+		<!-- Templates are re-rendered every time a nested template is updated -->
+		{{> auto_render}}
+
+	</div>
+
+</template>
+
+<template name="auto_render">
+    {{#if isPrep}}
+
+      {{current_FEN_updated1}}
+      
+    {{/if}}
+
+    <!-- Practice button clicked -->
+    {{#if isPractice}}
+
+      {{current_FEN_updated2}}
+
+    {{/if}}
+  
+</template>
+
+<template name="print_moves">
+	{{#if openingSelected}}
+    <h4>Opening Tree  ({{showOpeningName}})</h4>
+    <ul>
+      
+      {{#each first_move }}
+        <li id="{{_id}}" class="list-unstyled">
+          {{> display_opening}}
+        </li>
+      {{/each }}
+
+    </ul>
+    {{/if}}
+</template>
+
+<template name="display_opening" >
+    {{move}}
+    {{#if hasChildren}}
+      <ul>
+        {{#each children}}
+          <li id="{{_id}}" class="list-unstyled">
+            {{> display_opening}}
+          </li>
+        {{/each}}
+      </ul>
+   {{/if}}
+</template>
+
